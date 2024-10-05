@@ -1,4 +1,4 @@
-from flask import jsonify, session, make_response, request
+from flask import jsonify, session, make_response, request, current_app
 from flask_restful import Resource
 import json
 
@@ -10,31 +10,38 @@ from ..services.tasks import update_user
 
 class RepoData(Resource):
     def get(self, username):
-        user = User.query.filter_by(username=username).first()
-        if not user:
-            return make_response(jsonify({"error" : "User not found"}), 404)
+        try:
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return make_response(jsonify({"error" : "User not found"}), 404)
 
-        user_platforms = UserPlatform.query.filter_by(user_id=user.id).all()
-        repo_data = []
+            user_platforms = UserPlatform.query.filter_by(user_id=user.id).all()
+            repo_data = []
 
-        for platform in user_platforms:
-            # Fetch all the repositories
-            repos = Repo.query.filter_by(user_platform_id=platform.id).all()
-            for repo in repos:
-                repo_data.append({
-                    "repo_id" : repo.id,
-                    "repo_name" : repo.repo_name,
-                    "html_url" : repo.html_url,
-                    "platform" : platform.platform
-                })
-        
-        return make_response(jsonify({"repos" : repo_data}), 200)
+            for platform in user_platforms:
+                # Fetch all the repositories
+                repos = Repo.query.filter_by(user_platform_id=platform.id).all()
+                for repo in repos:
+                    repo_data.append({
+                        "repo_id" : repo.id,
+                        "repo_name" : repo.repo_name,
+                        "html_url" : repo.html_url,
+                        "platform" : platform.platform
+                    })
+            
+            return make_response(jsonify({"repos" : repo_data}), 200)
+        except Exception as e:
+            current_app.logger.error(f"Error while fetching repositories : {e}")
+            return make_response(jsonify({"error": "Internal server error"}), 500)
 
 
 class UserData(Resource):
     def get(self, username):
-        user = User.query.filter_by(username=username).first()
-        if user:
+        try:
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return make_response(jsonify({"error": "User not found"}), 404)
+            
             platforms = [
                 {
                     "id": platform.id,
@@ -50,81 +57,95 @@ class UserData(Resource):
                 'email': user.email,
                 'platforms': platforms
             }), 200)
-        else:
-            return make_response(jsonify({"error" : "User not found"}), 404)
         
+        except Exception as e:
+            current_app.logger.error(f"Error fetching user data for {username}: {e}")
+            return make_response(jsonify({"error": "Internal server error"}), 500)
+
 
 class EventData(Resource):
     def get(self, username):
-        user = User.query.filter_by(username=username).first()
-        if not user:
-            return make_response(jsonify({"error" : "User not found"}), 404)
-        
-        user_platforms = UserPlatform.query.filter_by(user_id=user.id).all()
-        event_data = []
+        try:
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return make_response(jsonify({"error": "User not found"}), 404)
 
-        for platform in user_platforms:
-            # Fetch all the repositories
-            repos = Repo.query.filter_by(user_platform_id=platform.id).all()
+            user_platforms = UserPlatform.query.filter_by(user_id=user.id).all()
+            event_data = []
 
-            for repo in repos:
-                # Fetch events for each repository
-                events = Events.query.filter_by(repo_id=repo.id).all()
-                if len(events):
-                    data = [
-                        {
-                            "event_id": event.id, 
-                            "type": event.type, 
-                            "created_at": event.created_at,
-                            "html_url": repo.html_url,
-                            "platform": platform.platform,
-                        } for event in events
-                    ]
-                    
-                    event_data.append(data)
+            for platform in user_platforms:
+                # Fetch all the repositories
+                repos = Repo.query.filter_by(user_platform_id=platform.id).all()
+
+                for repo in repos:
+                    # Fetch events for each repository
+                    events = Events.query.filter_by(repo_id=repo.id).all()
+                    if events:
+                        data = [
+                            {
+                                "event_id": event.id,
+                                "type": event.type,
+                                "created_at": event.created_at,
+                                "html_url": repo.html_url,
+                                "platform": platform.platform,
+                            }
+                            for event in events
+                        ]
+                        event_data.append(data)
+
+            return make_response(jsonify({"events": event_data}), 200)
         
-        return make_response(jsonify({"events" : event_data}), 200)
+        except Exception as e:
+            current_app.logger.error(f"Error fetching events for {username}: {e}")
+            return make_response(jsonify({"error": "Internal server error"}), 500)
 
 
 class UpdateUserData(Resource):
-    # @login_required
+    @login_required
     def post(self, username):
-        user = User.query.filter_by(username=username).first()
-        if not user:
-            return make_response(jsonify({"error" : "User not found"}), 404)
-        
-        loggedInUser = session.get("user_id")
-        # if loggedInUser != user.id:
-        #     return make_response(jsonify({"error" : "Authentication failure"}, 401))
-        update_user(user.id)
+        try:
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return make_response(jsonify({"error" : "User not found"}), 404)
+            
+            loggedInUser = session.get("user_id")
+            if loggedInUser != user.id:
+                return make_response(jsonify({"error" : "Authentication failure"}, 401))
+            update_user(user.id)
 
-        return make_response(jsonify({"message" : "User updated."}, 201))
+            return make_response(jsonify({"message" : "User updated."}, 201))
+        except Exception as e:
+            current_app.logger.error(f"Error updating events for {username} : {e}")
+            return make_response(jsonify({"error": "Internal server error"}), 500)
     
 
 class AddPlatform(Resource):
-    # @login_required
+    @login_required
     def post(self, username):
-        data = request.get_json()
-        platform = data.get('platform')
-        platform_username = data.get('username')
-        user_id = session.get("user_id")
-        user = User.query.filter_by(username=username).first()
+        try:
+            data = request.get_json()
+            platform = data.get('platform')
+            platform_username = data.get('username')
+            user_id = session.get("user_id")
+            user = User.query.filter_by(username=username).first()
 
-        # if user.id != user_id:
-        #     return make_response(jsonify({"error" : "Authentication failed"}), 401)
+            if user.id != user_id:
+                return make_response(jsonify({"error" : "Authentication failed"}), 401)
 
-        if not user:
-            return make_response(jsonify({"error" : "Failed"}), 400)
-        status = add_platform(user.id, platform_username, platform)
+            if not user:
+                return make_response(jsonify({"error" : "Failed"}), 400)
+            status = add_platform(user.id, platform_username, platform)
 
-        if status == "Success":
-            update_user(user_id)
-            return make_response(jsonify({"message" : "Platform successfully added"}, 201))
-        return make_response(jsonify({"error" : status}), 400)
-    
+            if status == "Success":
+                update_user(user_id)
+                return make_response(jsonify({"message" : "Platform successfully added"}, 201))
+            return make_response(jsonify({"error" : status}), 400)
+        except Exception as e:
+            current_app.logger.error(f"Error while adding platform for {username} : {e}")
+            return make_response(jsonify({"error": "Internal server error"}), 500)
 
 class RemovePlatform(Resource):
-    # @login_required
+    @login_required
     def post(self, username):
         data = request.get_json()
         platform = data.get('platform')

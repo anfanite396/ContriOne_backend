@@ -3,9 +3,8 @@ from flask_restful import Resource
 from functools import wraps
 import bcrypt, secrets
 
-from ..models.users import db, User
-from ..models.methods import add_event, add_repo, add_platform, add_user
-from ..services.tasks import update_user
+from ..models.users import User
+from ..models.methods import add_user
 
 
 class Register(Resource):

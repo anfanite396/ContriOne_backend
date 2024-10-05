@@ -129,17 +129,21 @@ class RemovePlatform(Resource):
         data = request.get_json()
         platform = data.get('platform')
 
-        user = User.query.filter_by(username=username).first()
-        if not user:
-            return make_response(jsonify({"error" : "No such user"}), 400)
-        
-        user_platform = UserPlatform.query.filter_by(platform=platform, user_id=user.id).first()
+        try:
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                return make_response(jsonify({"error" : "No such user"}), 400)
+            
+            user_platform = UserPlatform.query.filter_by(platform=platform, user_id=user.id).first()
 
-        if not user_platform:
-            return make_response(jsonify({"error" : "User platform does not exist"}), 404)
-        
-        delete_platform(user_platform.id, user.id)
-        return make_response(jsonify({"message" : "Platform successfully deleted"}), 201)
+            if not user_platform:
+                return make_response(jsonify({"error" : "User platform does not exist"}), 404)
+            
+            delete_platform(user_platform.id, user.id)
+            return make_response(jsonify({"message" : "Platform successfully deleted"}), 201)
+        except Exception as e:
+            print(f"Error while removing user platform : {e}")
+            return make_response(jsonify({"error" : e}), 500)
         
 
 

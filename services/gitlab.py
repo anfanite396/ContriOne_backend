@@ -1,5 +1,5 @@
 from dateutil import parser
-from ..models.users import add_event, add_repo
+from ..models.methods import add_event, add_repo
 from .requests import fetch_gitlab
 
 def update_repos(username):

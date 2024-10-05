@@ -1,5 +1,5 @@
 from datetime import datetime
-from ..models.users import add_event, add_repo
+from ..models.methods import add_event, add_repo
 from .requests import fetch_github
 
 def update_repos(username):

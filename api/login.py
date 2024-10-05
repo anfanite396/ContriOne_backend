@@ -1,9 +1,10 @@
 from flask import request, jsonify, session, make_response, current_app
 from flask_restful import Resource
 from functools import wraps
-import bcrypt, json, secrets
+import bcrypt, secrets
 
-from ..models.users import db, User, add_event, add_repo, add_platform
+from ..models.users import db, User
+from ..models.methods import add_event, add_repo, add_platform, add_user
 from ..services.tasks import update_user
 
 
@@ -15,24 +16,15 @@ class Register(Resource):
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
-        # platforms = json.loads(data['platforms'])
-
-        user = User.query.filter_by(username=username).first()
-        user2 = User.query.filter_by(email=email).first()
-
-        if user:
-            return make_response(jsonify({"error" : "Username already exists"}), 400)
-        elif user2:
-            return make_response(jsonify({"error" : "Email already registered"}), 400)
 
         bytes = password.encode("utf-8")
         salt = bcrypt.gensalt()
-
         hashed_password = bcrypt.hashpw(bytes, salt)
-        new_user = User(name=name, username=username, email=email, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        return make_response(jsonify({"message" : "User created successfully"}), 201)
+
+        status = add_user(name, username, email, hashed_password)
+        if status == "Success":
+            return make_response(jsonify({"message" : "User created successfully"}), 201)
+        return make_response(jsonify({"error" : status}), 400)
     
 
 class Login(Resource):

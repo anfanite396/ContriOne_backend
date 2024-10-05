@@ -3,7 +3,8 @@ from flask_restful import Resource
 import json
 
 from .login import login_required
-from ..models.users import Repo, Events, User, UserPlatform, add_platform, delete_platform
+from ..models.users import Repo, Events, User, UserPlatform
+from ..models.methods import add_platform, delete_platform
 from ..services.tasks import update_user
 
 

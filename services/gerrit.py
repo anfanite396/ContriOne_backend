@@ -1,6 +1,7 @@
 import requests
 
-from ..models.users import Repo, add_event, add_repo
+from ..models.users import Repo
+from ..models.methods import add_event, add_repo
 
 def fetch_data(username, gerrit_server, query):
     url = f"https://gerrit.{gerrit_server}.org/changes/?q=owner:{username}"

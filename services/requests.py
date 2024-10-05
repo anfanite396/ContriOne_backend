@@ -13,7 +13,6 @@ def fetch_github(username, query=None):
         return None
     
 def fetch_gitlab(username, query=None):
-    print(username)
     if query:
         url = f"https://gitlab.com/api/v4/users/{username}/{query}"
     else:

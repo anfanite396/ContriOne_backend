@@ -19,14 +19,13 @@ def create_app():
     app.config['SESSION_TYPE'] = 'filesystem'
     Session(app)
 
-    MYSQL_USER = os.getenv('MYSQL_USER')
-    print(MYSQL_USER)
-    MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
-    MYSQL_HOST = os.getenv('MYSQL_HOST')
-    MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
+    POSTGRES_USER = os.getenv('POSTGRES_USER')
+    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+    POSTGRES_HOST = os.getenv('POSTGRES_HOST')  # Use internal URL
+    POSTGRES_DATABASE = os.getenv('POSTGRES_DATABASE')
     SECRET_KEY = os.getenv('SECRET_KEY')
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DATABASE}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = SECRET_KEY
     db.init_app(app)

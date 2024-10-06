@@ -4,16 +4,21 @@ from ..models.users import User, UserPlatform
 from apscheduler.schedulers.background import BackgroundScheduler
 
 def update_user(user_id):
+    platform_fetcher = {
+            "github": update_github,
+            "gitlab": update_gitlab,
+        }
+    
     platforms = UserPlatform.query.filter_by(user_id=user_id).all()
     for platform in platforms:
-        if platform.platform == "github":
-            update_github(platform.username)
-        elif platform.platform == "gitlab":
-            update_gitlab(platform.username)
-        elif platform.platform == "gerrit":
-            pass
-        else:
-            return "Platform not found"
+        try:
+            update_function = platform_fetcher.get(platform.platform)
+            if not update_function:
+                return "Platform not found"
+            
+            update_function(platform.username)
+        except Exception as e:
+            return f"Error occurred while updating platforms: {e}"
         
 def update_data():
     users = User.query.all()

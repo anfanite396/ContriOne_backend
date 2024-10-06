@@ -3,3 +3,4 @@ flask_session/
 *.pem
 __pycache__/
 *.pyc
+.env

@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_cors import CORS
 from flask_session import Session
@@ -6,7 +7,6 @@ from .api import api_bp
 from .services import services_bp
 from .health import health_bp
 from .models.users import db
-from .config import MYSQL_PASSWORD, MYSQL_HOST, MYSQL_USER, MYSQL_DATABASE, SECRET_KEY
 
 def create_app():
     app = Flask(__name__)
@@ -18,6 +18,13 @@ def create_app():
     app.config['SESSION_COOKIE_DOMAIN'] = None
     app.config['SESSION_TYPE'] = 'filesystem'
     Session(app)
+
+    MYSQL_USER = os.getenv('MYSQL_USER')
+    print(MYSQL_USER)
+    MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
+    MYSQL_HOST = os.getenv('MYSQL_HOST')
+    MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
+    SECRET_KEY = os.getenv('SECRET_KEY')
 
     app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}/{MYSQL_DATABASE}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

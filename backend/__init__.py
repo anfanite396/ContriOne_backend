@@ -20,13 +20,14 @@ def create_app():
     app.config['SESSION_TYPE'] = 'filesystem'
     Session(app)
 
-    POSTGRES_USER = os.getenv('POSTGRES_USER')
-    POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-    POSTGRES_HOST = os.getenv('POSTGRES_HOST')
-    POSTGRES_DATABASE = os.getenv('POSTGRES_DATABASE')
+    ## On local
+    # DATABASE_URL = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DATABASE}'
+
+    ## On server
+    DATABASE_URL = os.getenv('DATABASE_URL')
     SECRET_KEY = os.getenv('SECRET_KEY')
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}/{POSTGRES_DATABASE}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = SECRET_KEY
     db.init_app(app)

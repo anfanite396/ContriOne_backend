@@ -7,6 +7,7 @@ from .api import api_bp
 from .services import services_bp
 from .health import health_bp
 from .models.users import db
+# from .config import POSTGRES_DATABASE, POSTGRES_HOST, POSTGRES_PASSWORD, POSTGRES_USER, SECRET_KEY
 
 def create_app():
     app = Flask(__name__)
@@ -21,7 +22,7 @@ def create_app():
 
     POSTGRES_USER = os.getenv('POSTGRES_USER')
     POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
-    POSTGRES_HOST = os.getenv('POSTGRES_HOST')  # Use internal URL
+    POSTGRES_HOST = os.getenv('POSTGRES_HOST')
     POSTGRES_DATABASE = os.getenv('POSTGRES_DATABASE')
     SECRET_KEY = os.getenv('SECRET_KEY')
 

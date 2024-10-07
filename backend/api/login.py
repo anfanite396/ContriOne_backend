@@ -23,10 +23,7 @@ class Register(Resource):
             if not all([name, username, email, password]):
                 return make_response(jsonify({"error": "All fields are required"}), 400)
 
-            # Hash the password
-            bytes = password.encode("utf-8")
-            salt = bcrypt.gensalt()
-            hashed_password = bcrypt.hashpw(bytes, salt)
+            hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
             # Add the user to the database
             status = add_user(name, username, email, hashed_password)

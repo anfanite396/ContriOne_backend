@@ -28,6 +28,10 @@ class Register(Resource):
             # Add the user to the database
             status = add_user(name, username, email, hashed_password)
             if status == "Success":
+                session.clear()
+                user = User.query.filter_by(username=username).first()
+                if user:
+                    session["user_id"] = user.id
                 return make_response(jsonify({"message": "User created successfully"}), 201)
             return make_response(jsonify({"error": status}), 400)
         
